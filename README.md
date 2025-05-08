@@ -22,7 +22,7 @@ Lognexus is designed to simplify logging in your Node.js projects. Here’s what
 First, install Lognexus via npm:
 
 ```bash
-npm install @your-username/lognexus
+npm install lognexus
 ```
 
 ### Quick Example
@@ -30,7 +30,7 @@ npm install @your-username/lognexus
 Here’s how to get logging up and running in an Express app:
 
 ```javascript
-const logger = require("@your-username/lognexus");
+const logger = require("lognexus");
 const express = require("express");
 
 const { logger: winstonLogger, morgan } = logger.init();
@@ -55,7 +55,7 @@ app.listen(3000, () => console.log("Server running on port 3000"));
 Lognexus is highly configurable. Here’s a basic setup with AWS S3 logging:
 
 ```javascript
-const logger = require("@your-username/lognexus");
+const logger = require("lognexus");
 
 const { logger: winstonLogger, morgan } = logger.init({
   awsConfig: {
@@ -76,7 +76,7 @@ winstonLogger.info("Logger initialized with S3 streaming!");
 For a production-ready setup, you can pull configs from environment variables and fine-tune everything:
 
 ```javascript
-const logger = require("@your-username/lognexus");
+const logger = require("lognexus");
 
 const isProd = process.env.NODE_ENV === "production";
 
