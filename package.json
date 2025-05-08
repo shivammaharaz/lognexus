@@ -1,0 +1,36 @@
+{
+  "name": "lognexus",
+  "version": "1.0.0",
+  "description": "Comprehensive logging solution with Winston, Morgan and S3 streaming capabilities",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint ."
+  },
+  "keywords": [
+    "logging",
+    "winston",
+    "morgan",
+    "s3",
+    "aws",
+    "node"
+  ],
+  "author": "Shivam Kumar",
+  "license": "MIT",
+  "dependencies": {
+    "morgan": "^1.10.0",
+    "s3-streamlogger": "^1.11.1",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.36.0",
+    "jest": "^29.5.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": " https://github.com/shivammaharaz/lognexus.git"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
