@@ -1,4 +1,4 @@
-const morgan = require('morgan');
+const morgan = require("morgan");
 
 /**
  * Creates a Morgan middleware instance configured to use the provided logger
@@ -7,21 +7,21 @@ const morgan = require('morgan');
  * @returns {Function} - Configured Morgan middleware
  */
 function create(format, logger) {
-    // Default format if none provided
-    const logFormat = format || ':date[iso] :method :url :status :response-time ms :referrer :remote-addr :user-agent :remote-user';
+  const logFormat =
+    format ||
+    ":date[iso] :method :url :status :response-time ms :referrer :remote-addr :user-agent :remote-user";
 
-    // Return configured Morgan middleware
-    return morgan(logFormat, {
-        stream: {
-            write: (message) => {
-                if (logger) {
-                    logger.info(message && message.trim());
-                }
-            }
+  return morgan(logFormat, {
+    stream: {
+      write: (message) => {
+        if (logger) {
+          logger.info(message && message.trim());
         }
-    });
+      },
+    },
+  });
 }
 
 module.exports = {
-    create
+  create,
 };

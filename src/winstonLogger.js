@@ -1,5 +1,5 @@
-const winston = require('winston');
-const s3Stream = require('./s3Stream');
+const winston = require("winston");
+const s3Stream = require("./s3Stream");
 
 /**
  * Creates a Winston logger instance with optional console method overrides
@@ -15,68 +15,64 @@ const s3Stream = require('./s3Stream');
  * @returns {Object} - Winston logger instance
  */
 function createLogger(config = {}, overrideConsole = true) {
-    // Get configuration options
-    const enableConsoleLogging = config.enableConsoleLogging !== false;
-    const enableS3Logging = config.enableS3Logging !== false;
-    const enableUnhandledErrorLogging = config.enableUnhandledErrorLogging !== false;
-    const s3LogStream = config.s3Stream;
-    
-    // Default Winston configuration
-    const defaultConfig = {
-        level: 'info',
-        format: winston.format.combine(
-            winston.format.timestamp(), 
-            winston.format.json(), 
-            winston.format.errors()
-        ),
-        transports: []
-    };
+  const enableConsoleLogging = config.enableConsoleLogging !== false;
+  const enableS3Logging = config.enableS3Logging !== false;
+  const enableUnhandledErrorLogging =
+    config.enableUnhandledErrorLogging !== false;
+  const s3LogStream = config.s3Stream;
 
-    // Add console transport if enabled
-    if (enableConsoleLogging) {
-        defaultConfig.transports.push(new winston.transports.Console());
-    }
+  const defaultConfig = {
+    level: "info",
+    format: winston.format.combine(
+      winston.format.timestamp(),
+      winston.format.json(),
+      winston.format.errors()
+    ),
+    transports: [],
+  };
 
-    // Merge with custom config, but handle transports specially
-    const userTransports = config.transports || [];
-    const mergedConfig = {
-        ...defaultConfig,
-        ...config,
-        // Filter out any explicitly provided transports that match the type we're conditionally adding
-        transports: [
-            ...defaultConfig.transports,
-            ...userTransports.filter(t => {
-                // Keep all transports except those that might conflict with our conditional ones
-                if (!enableConsoleLogging && t instanceof winston.transports.Console) {
-                    return false;
-                }
-                return true;
-            })
-        ]
-    };
+  if (enableConsoleLogging) {
+    defaultConfig.transports.push(new winston.transports.Console());
+  }
 
-    // Add S3 stream transport if enabled and not already included
-    if (enableS3Logging && s3LogStream && 
-        !mergedConfig.transports.some(t => t instanceof winston.transports.Stream && t.stream === s3LogStream)) {
-        mergedConfig.transports.push(
-            new winston.transports.Stream({ stream: s3LogStream })
-        );
-    }
+  const userTransports = config.transports || [];
+  const mergedConfig = {
+    ...defaultConfig,
+    ...config,
+    transports: [
+      ...defaultConfig.transports,
+      ...userTransports.filter((t) => {
+        if (!enableConsoleLogging && t instanceof winston.transports.Console) {
+          return false;
+        }
+        return true;
+      }),
+    ],
+  };
 
-    // Create the logger
-    const logger = winston.createLogger(mergedConfig);
+  if (
+    enableS3Logging &&
+    s3LogStream &&
+    !mergedConfig.transports.some(
+      (t) => t instanceof winston.transports.Stream && t.stream === s3LogStream
+    )
+  ) {
+    mergedConfig.transports.push(
+      new winston.transports.Stream({ stream: s3LogStream })
+    );
+  }
 
-    // Set up global error handlers if enabled
-    if (enableUnhandledErrorLogging) {
-        _setupGlobalErrorHandlers(logger);
-    }
+  const logger = winston.createLogger(mergedConfig);
 
-    // Override console methods if requested
-    if (overrideConsole) {
-        _overrideConsoleMethods(logger);
-    }
+  if (enableUnhandledErrorLogging) {
+    _setupGlobalErrorHandlers(logger);
+  }
 
-    return logger;
+  if (overrideConsole) {
+    _overrideConsoleMethods(logger);
+  }
+
+  return logger;
 }
 
 /**
@@ -85,29 +81,29 @@ function createLogger(config = {}, overrideConsole = true) {
  * @private
  */
 function _setupGlobalErrorHandlers(logger) {
-    process.on('uncaughtException', (error) => {
-        logger.error('Uncaught Exception:', {
-            message: error.message,
-            stack: error.stack,
-            timestamp: new Date().toISOString()
-        });
+  process.on("uncaughtException", (error) => {
+    logger.error("Uncaught Exception:", {
+      message: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString(),
     });
+  });
 
-    process.on('unhandledRejection', (reason, promise) => {
-        logger.error('Unhandled Promise Rejection:', {
-            reason: reason,
-            promise: promise,
-            timestamp: new Date().toISOString()
-        });
+  process.on("unhandledRejection", (reason, promise) => {
+    logger.error("Unhandled Promise Rejection:", {
+      reason: reason,
+      promise: promise,
+      timestamp: new Date().toISOString(),
     });
+  });
 
-    process.on("TypeError", (err) => {
-        logger.error('TypeError:', {
-            message: err.message,
-            stack: err.stack,
-            timestamp: new Date().toISOString()
-        });
+  process.on("TypeError", (err) => {
+    logger.error("TypeError:", {
+      message: err.message,
+      stack: err.stack,
+      timestamp: new Date().toISOString(),
     });
+  });
 }
 
 /**
@@ -116,44 +112,42 @@ function _setupGlobalErrorHandlers(logger) {
  * @private
  */
 function _overrideConsoleMethods(logger) {
-    // Store original console methods
-    const originalConsole = {
-        log: console.log,
-        error: console.error,
-        warn: console.warn,
-        info: console.info,
-        debug: console.debug
-    };
+  const originalConsole = {
+    log: console.log,
+    error: console.error,
+    warn: console.warn,
+    info: console.info,
+    debug: console.debug,
+  };
 
-    // Override console methods
-    console.log = (...args) => {
-        logger.info(args);
-        originalConsole.log(...args);
-    };
+  console.log = (...args) => {
+    logger.info(args);
+    originalConsole.log(...args);
+  };
 
-    console.error = (...args) => {
-        logger.error(args);
-        originalConsole.error(...args);
-    };
+  console.error = (...args) => {
+    logger.error(args);
+    originalConsole.error(...args);
+  };
 
-    console.warn = (...args) => {
-        logger.warn(args);
-        originalConsole.warn(...args);
-    };
+  console.warn = (...args) => {
+    logger.warn(args);
+    originalConsole.warn(...args);
+  };
 
-    console.info = (...args) => {
-        logger.info(args);
-        originalConsole.info(...args);
-    };
+  console.info = (...args) => {
+    logger.info(args);
+    originalConsole.info(...args);
+  };
 
-    console.debug = (...args) => {
-        logger.debug(args);
-        originalConsole.debug(...args);
-    };
+  console.debug = (...args) => {
+    logger.debug(args);
+    originalConsole.debug(...args);
+  };
 }
 
 module.exports = {
-    createLogger,
-    _setupGlobalErrorHandlers,
-    _overrideConsoleMethods
+  createLogger,
+  _setupGlobalErrorHandlers,
+  _overrideConsoleMethods,
 };
