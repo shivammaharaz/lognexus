@@ -14,12 +14,13 @@ Lognexus is designed to simplify logging in your Node.js projects. Here’s what
 - **Super Configurable**: Tweak settings via code or environment variables.
 - **Memory Friendly**: Optional cache clearing to keep things lightweight.
 - **Express Ready**: Plug it into your Express app in minutes.
+- **Log Downloader**: Download and decompress logs from your S3 bucket easily.
 
 ## Getting Started
 
 ### Installation
 
-First, install Lognexus via npm:
+Install Lognexus via npm:
 
 ```bash
 npm install lognexus
@@ -52,7 +53,7 @@ app.listen(3000, () => console.log("Server running on port 3000"));
 
 ## Setup Made Simple
 
-Lognexus is highly configurable. Here’s a basic setup with AWS S3 logging:
+Here’s a basic setup with AWS S3 logging:
 
 ```javascript
 const logger = require("lognexus");
@@ -116,9 +117,39 @@ const { logger: log, morgan } = logger.init({
 module.exports = { log, morgan };
 ```
 
-## Configuration Options
+## 📥 Download Logs from S3
 
-Lognexus is packed with options to fit your needs. Here’s a rundown of the key ones:
+Want to inspect historical logs stored in S3? Lognexus provides a built-in utility to **download and decompress logs** directly from your AWS S3 bucket.
+
+### 🔧 Usage
+
+After initializing Lognexus with your AWS config, you can access `downloadLogFile` like this:
+
+```javascript
+const lognexus = require("lognexus");
+
+const { downloadLogFile } = lognexus.init({
+  awsConfig: {
+    bucketName: process.env.AWS_S3_BUCKET_NAME,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    region: process.env.AWS_REGION,
+  },
+});
+
+await downloadLogFile("logs/production/api-server/", "./local-logs");
+```
+
+### 🧠 What It Does
+
+- Downloads all log files under the specified **S3 folder prefix**
+- Automatically decompresses `.gz` log files
+- Skips downloading files that already exist in decompressed form
+- Saves logs to your local directory
+
+> A quick and efficient way to fetch and inspect production logs—no AWS Console required.
+
+## Configuration Options
 
 | Option                        | Type    | Description                  | Default                               |
 | ----------------------------- | ------- | ---------------------------- | ------------------------------------- |
@@ -143,18 +174,20 @@ Lognexus is packed with options to fit your needs. Here’s a rundown of the key
 
 ## Environment Variables
 
-Prefer environment variables? Lognexus supports them for easy configuration:
-
 - **AWS**:
+
   - `AWS_S3_BUCKET_NAME`: S3 bucket for logs.
   - `AWS_ACCESS_KEY_ID`: AWS access key.
   - `AWS_SECRET_ACCESS_KEY`: AWS secret key.
   - `AWS_REGION`: AWS region (default: 'us-east-1').
+
 - **App**:
+
   - `APP_TYPE`: App identifier (default: 'development').
   - `ENABLE_CONSOLE_LOGGING`: Set to 'false' to disable console logs.
   - `ENABLE_S3_LOGGING`: Set to 'false' to disable S3 logging.
   - `ENABLE_UNHANDLED_ERROR_LOGGING`: Set to 'false' to disable error handlers.
+
 - **S3 Logging**:
   - `S3_LOG_FOLDER`: S3 folder path.
   - `S3_LOG_NAME_FORMAT`: Log file name format.
@@ -163,9 +196,46 @@ Prefer environment variables? Lognexus supports them for easy configuration:
   - `S3_LOG_UPLOAD_EVERY`: Upload interval (ms, default: 3 hours).
   - `S3_LOG_COMPRESS`: Set to 'false' to disable compression.
 
+## Advanced Usage
+
+### Custom Winston Transports
+
+```javascript
+const winston = require("winston");
+const { winstonLogger } = require("lognexus");
+require("winston-daily-rotate-file");
+
+const logger = winstonLogger.createLogger({
+  transports: [
+    new winston.transports.DailyRotateFile({
+      filename: "logs/error-%DATE%.log",
+      datePattern: "YYYY-MM-DD",
+      level: "error",
+      maxSize: "20m",
+      maxFiles: "14d",
+    }),
+    new winston.transports.Console(),
+  ],
+});
+
+logger.info("Custom transport added!");
+```
+
+### Custom Morgan Middleware
+
+```javascript
+const { morganMiddleware } = require("lognexus");
+
+const morgan = morganMiddleware.create(":method :url :status", {
+  skip: () => false,
+});
+
+app.use(morgan);
+```
+
 ## AWS Permissions for S3
 
-To stream logs to S3, your AWS credentials need these permissions:
+To stream logs to S3 or use the download utility, your AWS credentials need thesephysics: PutObject
 
 - `s3:PutObject`
 - `s3:GetObject`
@@ -175,7 +245,7 @@ To stream logs to S3, your AWS credentials need these permissions:
 
 We’d love your help to make Lognexus even better! Here’s how to contribute:
 
-1. Fork the repo: `https://github.com/shivammaharaz/lognexus.git`.
+1. Fork the repo: `https://github.com/your-username/lognexus`.
 2. Create a feature branch: `git checkout -b feature/cool-new-thing`.
 3. Commit your changes: `git commit -m 'Add cool new thing'`.
 4. Push to the branch: `git push origin feature/cool-new-thing`.
