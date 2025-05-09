@@ -245,7 +245,7 @@ To stream logs to S3 or use the download utility, your AWS credentials need thes
 
 We’d love your help to make Lognexus even better! Here’s how to contribute:
 
-1. Fork the repo: `https://github.com/your-username/lognexus`.
+1. Fork the repo: `https://github.com/shivammaharaz/lognexus`.
 2. Create a feature branch: `git checkout -b feature/cool-new-thing`.
 3. Commit your changes: `git commit -m 'Add cool new thing'`.
 4. Push to the branch: `git push origin feature/cool-new-thing`.
