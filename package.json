@@ -1,6 +1,6 @@
 {
   "name": "lognexus",
-  "version": "1.0.20",
+  "version": "1.0.21",
   "description": "Comprehensive logging solution with Winston, Morgan and S3 streaming capabilities",
   "main": "index.js",
   "scripts": {
