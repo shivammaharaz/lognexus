@@ -4,14 +4,11 @@ const {
   GetObjectCommand,
 } = require("@aws-sdk/client-s3");
 const fs = require("fs");
-const zlib = require("zlib");
 const path = require("path");
-const { promisify } = require("util");
-
-const gunzip = promisify(zlib.gunzip);
+const { ungzip } = require("fflate"); // Replace zlib with fflate
 
 /**
- * Downloads and decompresses log files from an S3 bucket to a local directory.
+ * Downloads and decompresses log files from an S3 bucket to a local directory using fflate.
  *
  * @async
  * @function downloadS3Logs
@@ -81,7 +78,14 @@ const downloadS3Logs = async (s3Prefix, localDownloadDir) => {
         }
         const buffer = Buffer.concat(chunks);
 
-        const decompressedData = await gunzip(buffer);
+        // Decompress using fflate's ungzip
+        const decompressedData = await new Promise((resolve, reject) => {
+          ungzip(buffer, (err, result) => {
+            if (err) reject(err);
+            else resolve(result);
+          });
+        });
+
         await fs.promises.writeFile(decompressedPath, decompressedData);
         console.log(`Saved decompressed file: ${decompressedPath}`);
       } catch (err) {
